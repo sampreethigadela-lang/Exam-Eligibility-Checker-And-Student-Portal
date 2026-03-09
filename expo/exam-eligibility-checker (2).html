@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ExamCheck — Eligibility & Fee Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0f14;
+  --surface: #151820;
+  --s2: #1c2030;
+  --s3: #222840;
+  --border: #252a3a;
+  --border2: #2f3650;
+  --accent: #4f8fff;
+  --accent2: #7c5cfc;
+  --green: #22d37a;
+  --red: #ff5c5c;
+  --yellow: #ffd166;
+  --orange: #ff9f43;
+  --text: #e8eaf0;
+  --muted: #7a8099;
+  --muted2: #a0a8c0;
+  --shadow: 0 8px 32px rgba(0,0,0,0.5);
+  --radius: 14px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(79,143,255,0.035) 1px,transparent 1px),
+                    linear-gradient(90deg,rgba(79,143,255,0.035) 1px,transparent 1px);
+  background-size:44px 44px;pointer-events:none;z-index:0;
+}
+
+/* ── PANELS ── */
+.panel{display:none;animation:fadeUp .38s ease}
+.panel.active{display:block}
+#panel-role.active{display:flex}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+.container{position:relative;z-index:1;max-width:1140px;margin:0 auto;padding:0 1.5rem}
+
+/* ── HEADER ── */
+header{border-bottom:1px solid var(--border);padding:.9rem 0;background:rgba(13,15,20,.92);backdrop-filter:blur(14px);position:sticky;top:0;z-index:100}
+.header-inner{display:flex;align-items:center;justify-content:space-between;max-width:1140px;margin:0 auto;padding:0 1.5rem}
+.logo{font-family:'Space Mono',monospace;font-size:1.05rem;font-weight:700;color:var(--accent);letter-spacing:-.5px}
+.logo span{color:var(--accent2)}
+.header-right{display:flex;align-items:center;gap:.75rem}
+.user-pill{display:flex;align-items:center;gap:.5rem;background:var(--s2);border:1px solid var(--border2);border-radius:20px;padding:.3rem .9rem .3rem .5rem;font-size:.8rem;font-weight:600;color:var(--muted2)}
+.user-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dot-teacher{background:var(--accent)}.dot-student{background:var(--accent2)}
+#back-btn{display:none;background:var(--s2);border:1px solid var(--border);color:var(--muted);padding:.42rem 1rem;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.84rem;transition:all .2s}
+#back-btn:hover{color:var(--text);border-color:var(--accent)}
+
+/* ── ROLE SELECTION ── */
+#panel-role{min-height:calc(100vh - 61px);align-items:center;justify-content:center}
+.role-wrapper{text-align:center;max-width:580px;width:100%;padding:2rem}
+.role-eyebrow{font-size:.72rem;text-transform:uppercase;letter-spacing:.2em;color:var(--accent);font-weight:700;margin-bottom:1rem}
+.role-title{font-family:'Space Mono',monospace;font-size:clamp(1.7rem,5vw,2.7rem);font-weight:700;line-height:1.2;margin-bottom:.75rem}
+.role-title span{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.role-sub{color:var(--muted);font-size:.95rem;margin-bottom:2.5rem}
+.role-cards{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
+.role-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:2.4rem 1.5rem;cursor:pointer;transition:all .25s;position:relative;overflow:hidden}
+.role-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .25s}
+.role-card.teacher::before{background:radial-gradient(circle at top left,rgba(79,143,255,.12),transparent 60%)}
+.role-card.student::before{background:radial-gradient(circle at top right,rgba(124,92,252,.12),transparent 60%)}
+.role-card:hover{border-color:var(--accent);transform:translateY(-4px);box-shadow:var(--shadow)}
+.role-card:hover::before{opacity:1}
+.role-card.student:hover{border-color:var(--accent2)}
+.role-icon{font-size:2.5rem;margin-bottom:1rem;display:block}
+.role-card h3{font-size:1.15rem;font-weight:700;margin-bottom:.35rem;font-family:'Space Mono',monospace}
+.role-card p{color:var(--muted);font-size:.85rem}
+
+/* ── AUTH ── */
+.auth-wrapper{display:flex;min-height:calc(100vh - 61px);align-items:center;justify-content:center;padding:2rem}
+.auth-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:2.5rem;width:100%;max-width:420px;box-shadow:var(--shadow)}
+.auth-badge{display:inline-block;background:rgba(79,143,255,.1);color:var(--accent);font-size:.72rem;font-family:'Space Mono',monospace;padding:.28rem .75rem;border-radius:20px;margin-bottom:1rem;border:1px solid rgba(79,143,255,.25)}
+.auth-card.student-auth .auth-badge{background:rgba(124,92,252,.1);color:var(--accent2);border-color:rgba(124,92,252,.25)}
+.auth-card h2{font-family:'Space Mono',monospace;font-size:1.45rem;margin-bottom:.4rem}
+.auth-sub{color:var(--muted);font-size:.875rem;margin-bottom:1.75rem}
+label{display:block;font-size:.8rem;color:var(--muted);margin-bottom:.4rem;font-weight:500}
+.form-group{margin-bottom:1.2rem}
+input[type="text"],input[type="password"],input[type="number"],select{width:100%;background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:.72rem 1rem;font-family:'DM Sans',sans-serif;font-size:.94rem;transition:border-color .2s;outline:none;-webkit-appearance:none}
+input:focus,select:focus{border-color:var(--accent)}
+.student-auth input:focus{border-color:var(--accent2)}
+input[type="number"]{-moz-appearance:textfield}
+input[type="number"]::-webkit-inner-spin-button,input[type="number"]::-webkit-outer-spin-button{-webkit-appearance:none}
+.error-msg{display:none;color:var(--red);font-size:.82rem;margin-top:.65rem;padding:.55rem 1rem;background:rgba(255,92,92,.07);border:1px solid rgba(255,92,92,.2);border-radius:7px}
+.error-msg.show{display:block}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:.72rem 1.45rem;border-radius:9px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.92rem;font-weight:600;transition:all .2s;text-decoration:none;white-space:nowrap}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#2b6eff);color:#fff;width:100%}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 6px 20px rgba(79,143,255,.35)}
+.btn-purple{background:linear-gradient(135deg,var(--accent2),#5a3fc0);color:#fff;width:100%}
+.btn-purple:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 6px 20px rgba(124,92,252,.35)}
+.btn-green{background:rgba(34,211,122,.14);color:var(--green);border:1px solid rgba(34,211,122,.3)}
+.btn-green:hover{background:rgba(34,211,122,.24)}
+.btn-yellow{background:rgba(255,209,102,.12);color:var(--yellow);border:1px solid rgba(255,209,102,.3)}
+.btn-yellow:hover{background:rgba(255,209,102,.22)}
+.btn-red{background:rgba(255,92,92,.12);color:var(--red);border:1px solid rgba(255,92,92,.3)}
+.btn-red:hover{background:rgba(255,92,92,.22)}
+.btn-outline{background:transparent;border:1px solid var(--border2);color:var(--muted)}
+.btn-outline:hover{border-color:var(--accent);color:var(--text)}
+.btn-ghost{background:var(--s2);border:1px solid var(--border);color:var(--muted2)}
+.btn-ghost:hover{border-color:var(--accent);color:var(--text)}
+.btn-sm{padding:.32rem .8rem;font-size:.78rem;border-radius:7px}
+.btn-full{width:100%}
+
+/* ── DASHBOARD ── */
+.dashboard{padding:2rem 0 5rem}
+.dash-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.75rem;flex-wrap:wrap;gap:1rem}
+.dash-title{font-family:'Space Mono',monospace;font-size:1.35rem}
+.dash-title small{display:block;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.875rem;font-weight:400;margin-top:.25rem}
+
+/* ── TABS ── */
+.tab-bar{display:flex;gap:.4rem;background:var(--s2);padding:.3rem;border-radius:10px;width:fit-content;flex-wrap:wrap}
+.tab-btn{padding:.42rem 1.1rem;border-radius:8px;border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;color:var(--muted);transition:all .2s}
+.tab-btn.active{background:var(--s3);color:var(--text);border:1px solid var(--border2)}
+.tab-content{display:none}
+.tab-content.active{display:block;animation:fadeUp .3s ease}
+
+/* ── STATS ── */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;margin-bottom:1.75rem}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.4rem;position:relative;overflow:hidden}
+.stat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.stat-card.blue::after{background:var(--accent)}.stat-card.green::after{background:var(--green)}.stat-card.red::after{background:var(--red)}.stat-card.purple::after{background:var(--accent2)}.stat-card.yellow::after{background:var(--yellow)}.stat-card.orange::after{background:var(--orange)}
+.stat-label{color:var(--muted);font-size:.75rem;margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.stat-val{font-family:'Space Mono',monospace;font-size:1.65rem;font-weight:700}
+.stat-card.blue .stat-val{color:var(--accent)}.stat-card.green .stat-val{color:var(--green)}.stat-card.red .stat-val{color:var(--red)}.stat-card.purple .stat-val{color:var(--accent2)}.stat-card.yellow .stat-val{color:var(--yellow)}.stat-card.orange .stat-val{color:var(--orange)}
+.stat-icon{position:absolute;right:.9rem;top:50%;transform:translateY(-50%);font-size:1.8rem;opacity:.1}
+
+/* ── TABLE CARD ── */
+.table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-bottom:1.25rem}
+.table-top{display:flex;align-items:center;justify-content:space-between;padding:1.1rem 1.5rem;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:.75rem}
+.table-top h3{font-size:.95rem;font-family:'Space Mono',monospace}
+.table-hint{color:var(--muted);font-size:.76rem}
+.table-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:600px}
+thead th{background:var(--s2);text-align:left;padding:.72rem 1rem;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-family:'Space Mono',monospace;white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--border);transition:background .12s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(255,255,255,.02)}
+tbody td{padding:.82rem 1rem;font-size:.88rem;vertical-align:middle}
+
+/* ── BADGES ── */
+.badge{display:inline-block;padding:.28rem .72rem;border-radius:20px;font-size:.74rem;font-weight:600;font-family:'Space Mono',monospace;white-space:nowrap}
+.badge-green{background:rgba(34,211,122,.12);color:var(--green);border:1px solid rgba(34,211,122,.28)}
+.badge-red{background:rgba(255,92,92,.12);color:var(--red);border:1px solid rgba(255,92,92,.28)}
+.badge-yellow{background:rgba(255,209,102,.12);color:var(--yellow);border:1px solid rgba(255,209,102,.28)}
+.badge-blue{background:rgba(79,143,255,.12);color:var(--accent);border:1px solid rgba(79,143,255,.28)}
+.badge-orange{background:rgba(255,159,67,.12);color:var(--orange);border:1px solid rgba(255,159,67,.28)}
+
+/* ── CONTENTEDITABLE ── */
+[contenteditable="true"]{background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:.28rem .55rem;min-width:50px;display:inline-block;outline:none;transition:border-color .2s;font-family:'Space Mono',monospace}
+[contenteditable="true"]:focus{border-color:var(--accent)}
+
+/* ── PROGRESS BAR ── */
+.prog-wrap{background:var(--border);border-radius:20px;height:7px;overflow:hidden;margin-top:.35rem}
+.prog-bar{height:100%;border-radius:20px;transition:width .6s ease}
+.pb-green{background:linear-gradient(90deg,var(--green),#0fda60)}.pb-yellow{background:linear-gradient(90deg,var(--yellow),#f0b030)}.pb-red{background:linear-gradient(90deg,var(--red),#d02020)}.pb-blue{background:linear-gradient(90deg,var(--accent),#2b6eff)}
+
+/* ── ELIGIBILITY BANNER ── */
+.elig-banner{border-radius:var(--radius);padding:1.75rem 2rem;margin-bottom:1.75rem;display:flex;align-items:flex-start;gap:1.5rem;border:1px solid}
+.elig-banner.eligible{background:rgba(34,211,122,.06);border-color:rgba(34,211,122,.25)}
+.elig-banner.not-eligible{background:rgba(255,92,92,.06);border-color:rgba(255,92,92,.22)}
+.elig-icon{font-size:2.4rem;flex-shrink:0;margin-top:.1rem}
+.elig-banner h2{font-family:'Space Mono',monospace;font-size:1.2rem}
+.elig-banner p{color:var(--muted);font-size:.86rem;margin-top:.3rem;line-height:1.5}
+.elig-banner.eligible h2{color:var(--green)}
+.elig-banner.not-eligible h2{color:var(--red)}
+.elig-reasons{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:.75rem}
+.reason-chip{display:inline-flex;align-items:center;gap:.35rem;padding:.28rem .75rem;background:rgba(255,92,92,.1);border:1px solid rgba(255,92,92,.22);border-radius:20px;font-size:.74rem;color:var(--red)}
+.reason-chip.ok{background:rgba(34,211,122,.1);border-color:rgba(34,211,122,.22);color:var(--green)}
+
+/* ── HALL TICKET BTN ── */
+.hall-ticket-btn{display:inline-flex;align-items:center;gap:.6rem;padding:.85rem 1.75rem;background:linear-gradient(135deg,var(--green),#0fa854);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;transition:all .25s;box-shadow:0 4px 20px rgba(34,211,122,.32);margin-top:1.1rem;width:100%;justify-content:center}
+.hall-ticket-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(34,211,122,.45)}
+
+/* ── INFO CARDS GRID ── */
+.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:1.75rem}
+.info-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;text-align:center;position:relative;overflow:hidden}
+.info-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.ic-blue::after{background:var(--accent)}.ic-green::after{background:var(--green)}.ic-yellow::after{background:var(--yellow)}.ic-purple::after{background:var(--accent2)}.ic-red::after{background:var(--red)}.ic-orange::after{background:var(--orange)}
+.info-label{color:var(--muted);font-size:.76rem;margin-bottom:.45rem;text-transform:uppercase;letter-spacing:.07em;font-weight:600}
+.info-val{font-family:'Space Mono',monospace;font-size:1.75rem;font-weight:700}
+
+/* ── UPLOAD CARD ── */
+.upload-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.75rem;margin-bottom:1.25rem}
+.upload-card h3{font-family:'Space Mono',monospace;font-size:.95rem;margin-bottom:.75rem}
+.upload-card p{color:var(--muted);font-size:.86rem;margin-bottom:1rem}
+.file-row{display:flex;gap:.85rem;flex-wrap:wrap;align-items:center}
+input[type="file"]{background:var(--s2);border:1px dashed var(--border);border-radius:8px;color:var(--muted);padding:.55rem 1rem;font-family:'DM Sans',sans-serif;font-size:.875rem;cursor:pointer;flex:1}
+input[type="file"]::-webkit-file-upload-button{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:.3rem .75rem;border-radius:6px;cursor:pointer;font-family:'DM Sans',sans-serif;margin-right:.65rem}
+.success-msg{color:var(--green);font-size:.84rem;margin-top:.65rem;display:none}
+.success-msg.show{display:block}
+
+/* ── FEE SECTION ── */
+.fee-pay-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.75rem;margin-bottom:1.25rem}
+.fee-pay-card h3{font-family:'Space Mono',monospace;font-size:.95rem;margin-bottom:.5rem}
+.fee-pay-card .fee-desc{color:var(--muted);font-size:.84rem;margin-bottom:1.1rem;line-height:1.5}
+.pay-row{display:flex;gap:.75rem;align-items:flex-end;flex-wrap:wrap}
+.pay-row .fg{flex:1;min-width:160px;margin-bottom:0}
+.pay-row .fg label{margin-bottom:.35rem}
+.pay-row input{background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:.65rem 1rem;font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;transition:border-color .2s;width:100%}
+.pay-row input:focus{border-color:var(--green)}
+
+.fee-struct-item{display:flex;justify-content:space-between;align-items:center;padding:.65rem 0;border-bottom:1px solid var(--border);font-size:.9rem}
+.fee-struct-item:last-child{border-bottom:none}
+.fsi-lbl{color:var(--muted2)}
+.fsi-val{font-family:'Space Mono',monospace;font-weight:700}
+
+.pay-history-row{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;background:var(--s2);border:1px solid var(--border);border-radius:9px;margin-bottom:.5rem}
+.phr-left{display:flex;align-items:center;gap:.85rem}
+.phr-icon{width:34px;height:34px;background:rgba(34,211,122,.12);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+.phr-name{font-weight:600;font-size:.84rem}
+.phr-date{font-size:.72rem;color:var(--muted);margin-top:.1rem}
+.phr-amt{font-family:'Space Mono',monospace;font-weight:700;color:var(--green);font-size:.9rem}
+.phr-rcpt{font-size:.7rem;color:var(--muted);margin-top:.15rem;text-align:right}
+
+/* ── EXPORT MODAL ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);z-index:200;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.open{display:flex;animation:fadeUp .3s ease}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:2rem;width:100%;max-width:480px;box-shadow:var(--shadow);position:relative}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+.modal-header h3{font-family:'Space Mono',monospace;font-size:1.05rem}
+.modal-close{background:var(--s2);border:1px solid var(--border);color:var(--muted);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:.95rem;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.modal-close:hover{color:var(--text);border-color:var(--red)}
+.filter-row{display:flex;gap:.65rem;margin-bottom:1.4rem;flex-wrap:wrap}
+.filter-chip{background:var(--s2);border:1px solid var(--border);color:var(--muted);padding:.32rem .85rem;border-radius:20px;font-size:.78rem;cursor:pointer;transition:all .2s;font-family:'Space Mono',monospace}
+.filter-chip.active{background:rgba(79,143,255,.12);color:var(--accent);border-color:rgba(79,143,255,.4)}
+.filter-chip.active.green{background:rgba(34,211,122,.12);color:var(--green);border-color:rgba(34,211,122,.4)}
+.filter-chip.active.red{background:rgba(255,92,92,.12);color:var(--red);border-color:rgba(255,92,92,.4)}
+.export-preview{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:.7rem 1rem;font-size:.8rem;color:var(--muted);margin-bottom:1.2rem;font-family:'Space Mono',monospace}
+.export-preview span{color:var(--accent)}
+.export-options{display:grid;gap:.85rem;margin-bottom:1.5rem}
+.export-option{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:1rem 1.2rem;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:.9rem}
+.export-option:hover{border-color:var(--accent);background:rgba(79,143,255,.05)}
+.export-option.pdf-opt:hover{border-color:var(--red);background:rgba(255,92,92,.05)}
+.exp-icon{font-size:1.7rem;flex-shrink:0}
+.export-option h4{font-size:.9rem;font-weight:600;margin-bottom:.18rem}
+.export-option p{color:var(--muted);font-size:.78rem}
+.btn-export-trigger{background:var(--s2);border:1px solid var(--border);color:var(--text);padding:.5rem 1.1rem;border-radius:9px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:600;display:inline-flex;align-items:center;gap:.5rem;transition:all .2s}
+.btn-export-trigger:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ── HALL TICKET MODAL ── */
+#hall-ticket-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(6px);z-index:500;align-items:center;justify-content:center;padding:1rem}
+#hall-ticket-modal.open{display:flex}
+.ht-modal-inner{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;width:100%;max-width:680px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.7);animation:fadeUp .3s ease}
+.ht-modal-actions{display:flex;gap:.75rem;margin-top:1.2rem;flex-wrap:wrap}
+#hall-ticket-preview{background:#fff;color:#0f172a;border-radius:10px;font-family:'DM Sans',sans-serif;overflow:hidden;border:2px solid #1d4ed8}
+.ht-top-bar{background:linear-gradient(135deg,#1d4ed8,#7c3aed);color:#fff;padding:1.25rem 1.75rem;display:flex;align-items:center;justify-content:space-between}
+.ht-college{font-size:1.05rem;font-weight:700}
+.ht-college small{display:block;font-size:.75rem;font-weight:400;opacity:.8;margin-top:2px}
+.ht-logo-circle{width:52px;height:52px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4rem;border:2px solid rgba(255,255,255,.4);flex-shrink:0}
+.ht-title-bar{background:#1e40af;color:#fff;text-align:center;padding:.6rem;font-size:.82rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+.ht-body{padding:1.5rem 1.75rem}
+.ht-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+.ht-field label{display:block;font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:#64748b;margin-bottom:.25rem;font-weight:600}
+.ht-field .ht-val{font-size:.93rem;font-weight:700;color:#0f172a;border-bottom:1.5px solid #e2e8f0;padding-bottom:.3rem}
+.ht-marks-table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.84rem}
+.ht-marks-table th{background:#f1f5f9;color:#475569;padding:.52rem .75rem;text-align:left;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;border:1px solid #e2e8f0}
+.ht-marks-table td{padding:.52rem .75rem;border:1px solid #e2e8f0;font-weight:600}
+.ht-eligible-stamp{text-align:center;margin:1.2rem 0 .7rem;padding:1rem;background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:2px dashed #22c55e;border-radius:10px}
+.ht-stamp-text{font-size:1.2rem;font-weight:900;color:#15803d;letter-spacing:.1em;text-transform:uppercase}
+.ht-stamp-sub{font-size:.78rem;color:#16a34a;margin-top:.25rem}
+.ht-footer{background:#f8fafc;border-top:1px solid #e2e8f0;padding:.8rem 1.75rem;display:flex;justify-content:space-between;align-items:center;font-size:.73rem;color:#94a3b8}
+.ht-sign{text-align:right}
+.sign-line{border-top:1.5px solid #94a3b8;width:120px;margin:.45rem 0 .18rem auto}
+
+/* ── RECEIPT MODAL ── */
+#receipt-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(6px);z-index:600;align-items:center;justify-content:center;padding:1rem}
+#receipt-modal.open{display:flex}
+.rcpt-box{background:#fff;color:#0f172a;border-radius:12px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.55);animation:fadeUp .3s ease}
+.rcpt-header{background:linear-gradient(135deg,#1d4ed8,#4338ca);color:#fff;padding:1.35rem 2rem;border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:flex-start}
+.rcpt-logo{font-family:'Space Mono',monospace;font-size:1rem;font-weight:700}
+.rcpt-logo span{color:#a5b4fc}
+.rcpt-type{font-size:.72rem;opacity:.7;margin-top:.2rem}
+.rcpt-no{font-size:.72rem;opacity:.75;text-align:right}
+.rcpt-date{font-size:.7rem;opacity:.6;margin-top:.15rem;text-align:right}
+.rcpt-body{padding:1.5rem 2rem}
+.rcpt-student{background:#f8fafc;border-radius:8px;padding:.85rem 1rem;margin-bottom:1.25rem;border:1px solid #e2e8f0}
+.rcpt-student-name{font-weight:700;font-size:1rem;color:#0f172a}
+.rcpt-student-id{font-size:.76rem;color:#64748b;margin-top:.1rem;font-family:'Space Mono',monospace}
+.rcpt-row{display:flex;justify-content:space-between;align-items:center;padding:.58rem 0;border-bottom:1px dashed #e2e8f0}
+.rcpt-row:last-child{border-bottom:none}
+.rcpt-row.total{border-top:2px solid #1d4ed8;border-bottom:none;padding-top:.75rem;margin-top:.25rem}
+.rcpt-lbl{color:#64748b;font-size:.82rem}
+.rcpt-val{font-weight:700;font-size:.9rem;color:#0f172a}
+.rcpt-val.big{font-size:1.1rem;color:#1d4ed8;font-family:'Space Mono',monospace}
+.rcpt-stamp{margin:1.1rem 0 0;padding:.8rem;background:#f0fdf4;border:2px dashed #22c55e;border-radius:8px;text-align:center;font-weight:700;color:#15803d;font-size:.85rem}
+.rcpt-foot{padding:.9rem 2rem;background:#f8fafc;border-top:1px solid #e2e8f0;text-align:center;font-size:.7rem;color:#94a3b8;border-radius:0 0 12px 12px}
+.rcpt-actions{display:flex;gap:.65rem;padding:1rem 2rem;border-top:1px solid #e2e8f0}
+.rcpt-btn{display:inline-flex;align-items:center;justify-content:center;gap:.45rem;padding:.62rem 1.25rem;border-radius:8px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.86rem;font-weight:600;transition:all .2s}
+.rcpt-btn-primary{background:linear-gradient(135deg,#1d4ed8,#4338ca);color:#fff;flex:1}
+.rcpt-btn-primary:hover{opacity:.9;transform:translateY(-1px)}
+.rcpt-btn-outline{background:transparent;border:1px solid #e2e8f0;color:#64748b}
+.rcpt-btn-outline:hover{border-color:#94a3b8;color:#0f172a}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--s2);border:1px solid var(--border2);color:var(--text);padding:.82rem 1.2rem;border-radius:10px;font-size:.86rem;box-shadow:var(--shadow);z-index:999;transform:translateY(80px);opacity:0;transition:all .3s ease;max-width:320px}
+#toast.show{transform:translateY(0);opacity:1}
+
+@media(max-width:600px){
+  .role-cards,.ht-row{grid-template-columns:1fr}
+  .auth-card{padding:1.75rem}
+  .elig-banner{flex-direction:column}
+  .stats-row{grid-template-columns:repeat(2,1fr)}
+  .info-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">Exam<span>Check</span>.io</div>
+    <div class="header-right">
+      <div class="user-pill" id="user-pill" style="display:none">
+        <span class="user-dot" id="user-dot"></span>
+        <span id="user-label"></span>
+      </div>
+      <button id="back-btn" onclick="goHome()">← Home</button>
+    </div>
+  </div>
+</header>
+
+<!-- ROLE SELECTION -->
+<div id="panel-role" class="panel active">
+  <div class="container">
+    <div class="role-wrapper">
+      <div class="role-eyebrow">Academic Portal</div>
+      <h1 class="role-title">Exam <span>Eligibility</span> & Fee System</h1>
+      <p class="role-sub">Manage marks, fees, and exam eligibility in one place</p>
+      <div class="role-cards">
+        <div class="role-card teacher" onclick="showPanel('panel-teacher-login')">
+          <span class="role-icon">👩‍🏫</span>
+          <h3>Teacher</h3>
+          <p>Manage marks, projects, fee structures & eligibility</p>
+        </div>
+        <div class="role-card student" onclick="showPanel('panel-student-login')">
+          <span class="role-icon">🎓</span>
+          <h3>Student</h3>
+          <p>View status, pay fees & download receipts</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TEACHER LOGIN -->
+<div id="panel-teacher-login" class="panel">
+  <div class="auth-wrapper container">
+    <div class="auth-card">
+      <div class="auth-badge">TEACHER ACCESS</div>
+      <h2>Welcome Back 👩‍🏫</h2>
+      <p class="auth-sub">Login to manage students, marks & fee structures</p>
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="t-user" placeholder="teacher" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="t-pass" placeholder="1234">
+      </div>
+      <button class="btn btn-primary" onclick="teacherLogin()">Login to Dashboard</button>
+      <div class="error-msg" id="t-error">Invalid credentials. Use: teacher / 1234</div>
+    </div>
+  </div>
+</div>
+
+<!-- TEACHER DASHBOARD -->
+<div id="panel-teacher-dash" class="panel">
+  <div class="container dashboard">
+    <div class="dash-header">
+      <div class="dash-title">Teacher Dashboard <small>Marks, projects, fees & eligibility</small></div>
+      <div style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap">
+        <div class="tab-bar" id="teacher-tab-bar">
+          <button class="tab-btn active" onclick="switchTeacherTab('marks')">📝 Marks</button>
+          <button class="tab-btn" onclick="switchTeacherTab('fees')">💰 Fee Structure</button>
+        </div>
+        <button class="btn-export-trigger" onclick="openExportModal()">⬇ Export</button>
+      </div>
+    </div>
+    <div class="stats-row" id="t-stats"></div>
+
+    <!-- Marks Tab -->
+    <div id="teacher-tab-marks" class="tab-content active">
+      <div class="table-card">
+        <div class="table-top">
+          <h3>Student Records</h3>
+          <span class="table-hint">Click Mid marks to edit inline · Toggle project</span>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>#</th><th>Name</th><th>Mid 1 /50</th><th>Mid 2 /50</th><th>Internals</th><th>Project</th><th>Fee %</th><th>Eligibility</th></tr></thead>
+            <tbody id="student-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fee Structure Tab -->
+    <div id="teacher-tab-fees" class="tab-content">
+      <div class="table-card">
+        <div class="table-top">
+          <h3>💰 Fee Structure per Student</h3>
+          <span class="table-hint">Click fee amounts to edit · Updates eligibility instantly</span>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>#</th><th>Student</th><th>Tuition Fee</th><th>Paid</th><th>Due</th><th>Exam Fee</th><th>Exam Paid</th><th>Exam Due</th><th>Fee %</th><th>Status</th></tr></thead>
+            <tbody id="fee-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="table-card">
+        <div class="table-top"><h3>📊 Fee Collection Summary</h3></div>
+        <div id="fee-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1rem;padding:1.25rem"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STUDENT LOGIN -->
+<div id="panel-student-login" class="panel">
+  <div class="auth-wrapper container">
+    <div class="auth-card student-auth">
+      <div class="auth-badge">STUDENT ACCESS</div>
+      <h2>Student Portal 🎓</h2>
+      <p class="auth-sub">Login to view status, pay fees & download receipts</p>
+      <div class="form-group">
+        <label>Your Name</label>
+        <select id="s-name"><option value="">— Select your name —</option></select>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="s-pass" placeholder="1234">
+      </div>
+      <button class="btn btn-purple" onclick="studentLogin()">View My Dashboard</button>
+      <div class="error-msg" id="s-error">Incorrect password. All students use: 1234</div>
+    </div>
+  </div>
+</div>
+
+<!-- STUDENT DASHBOARD -->
+<div id="panel-student-dash" class="panel">
+  <div class="container dashboard">
+    <div class="dash-header">
+      <div class="dash-title">Student Dashboard <small id="s-dash-name"></small></div>
+      <div class="tab-bar" id="student-tab-bar">
+        <button class="tab-btn active" onclick="switchStudentTab('overview')">📋 Overview</button>
+        <button class="tab-btn" onclick="switchStudentTab('fees')">💳 Fees & Payment</button>
+      </div>
+    </div>
+
+    <!-- Overview Tab -->
+    <div id="student-tab-overview" class="tab-content active">
+      <div id="s-elig-banner"></div>
+      <div class="info-grid" id="s-info-grid"></div>
+      <div class="upload-card">
+        <h3>📂 Project Submission</h3>
+        <p id="s-proj-text"></p>
+        <div class="file-row" id="s-upload-row">
+          <input type="file" id="s-file-input" accept=".pdf,.zip,.rar,.doc,.docx">
+          <button class="btn btn-green btn-sm" onclick="submitProject()" style="flex-shrink:0">Submit Project</button>
+        </div>
+        <div class="success-msg" id="s-submit-ok">✅ Project submitted! Eligibility updated.</div>
+      </div>
+    </div>
+
+    <!-- Fees Tab -->
+    <div id="student-tab-fees" class="tab-content">
+      <div class="info-grid" id="s-fee-cards"></div>
+
+      <!-- Fee progress -->
+      <div class="upload-card" id="s-fee-progress-card"></div>
+
+      <!-- Pay tuition -->
+      <div class="fee-pay-card">
+        <h3>💳 Pay Tuition Fee</h3>
+        <p class="fee-desc" id="s-tuition-desc"></p>
+        <div class="pay-row">
+          <div class="fg">
+            <label>Amount (₹)</label>
+            <input type="number" id="s-tuition-input" placeholder="Enter amount" min="1">
+          </div>
+          <button class="btn btn-green btn-sm" style="flex-shrink:0;padding:.68rem 1.2rem" onclick="payTuition()">💳 Pay</button>
+        </div>
+        <div class="success-msg" id="s-tuition-ok">✅ Tuition payment recorded!</div>
+      </div>
+
+      <!-- Pay exam fee -->
+      <div class="fee-pay-card" id="s-exam-fee-card"></div>
+
+      <!-- History -->
+      <div class="table-card">
+        <div class="table-top"><h3>🧾 Payment History</h3></div>
+        <div style="padding:1rem 1.25rem" id="s-pay-hist"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EXPORT MODAL -->
+<div class="modal-overlay" id="export-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>⬇ Export Report</h3>
+      <button class="modal-close" onclick="closeExportModal()">✕</button>
+    </div>
+    <div class="filter-row">
+      <div class="filter-chip active" id="chip-all" onclick="setFilter('all')">All Students</div>
+      <div class="filter-chip green" id="chip-eligible" onclick="setFilter('eligible')">Eligible Only</div>
+      <div class="filter-chip red" id="chip-noteligible" onclick="setFilter('noteligible')">Not Eligible</div>
+    </div>
+    <div class="export-preview">Exporting <span id="exp-count">8</span> students</div>
+    <div class="export-options">
+      <div class="export-option" onclick="exportCSV()">
+        <div class="exp-icon">📊</div>
+        <div><h4>Export CSV</h4><p>Opens in Excel or Google Sheets</p></div>
+      </div>
+      <div class="export-option pdf-opt" onclick="exportPDF()">
+        <div class="exp-icon">📄</div>
+        <div><h4>Export PDF</h4><p>Printable summary report</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HALL TICKET MODAL -->
+<div id="hall-ticket-modal">
+  <div class="ht-modal-inner">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+      <h3 style="font-family:'Space Mono',monospace;font-size:.95rem">🎫 Hall Ticket Preview</h3>
+      <button onclick="closeHallTicket()" style="background:var(--s2);border:1px solid var(--border);color:var(--muted);padding:.3rem .8rem;border-radius:7px;cursor:pointer;font-family:'DM Sans',sans-serif">✕ Close</button>
+    </div>
+    <div id="hall-ticket-preview"></div>
+    <div class="ht-modal-actions">
+      <button class="btn btn-primary" onclick="downloadHallTicket()" style="flex:1">⬇ Download Hall Ticket</button>
+      <button class="btn btn-outline btn-sm" onclick="downloadHallTicket()">🖨 Print</button>
+    </div>
+    <p style="color:var(--muted);font-size:.76rem;margin-top:.65rem;text-align:center">Use browser Print → Save as PDF to download.</p>
+  </div>
+</div>
+
+<!-- RECEIPT MODAL -->
+<div id="receipt-modal">
+  <div class="rcpt-box" id="rcpt-box"></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════
+//  DATA
+// ════════════════════════════════
+const students = [
+  { name:"Aarav Sharma",  mid1:38,mid2:42,internals:85,project:true,  tuition:50000,examFee:2000,paidTuition:45000,paidExam:2000,payments:[{id:"RC2025001",date:"2025-01-10",type:"Tuition Fee",amount:45000},{id:"RC2025002",date:"2025-01-12",type:"Exam Fee",amount:2000}]},
+  { name:"Priya Patel",   mid1:28,mid2:35,internals:78,project:true,  tuition:50000,examFee:2000,paidTuition:30000,paidExam:0,   payments:[{id:"RC2025003",date:"2025-01-15",type:"Tuition Fee",amount:30000}]},
+  { name:"Rahul Verma",   mid1:40,mid2:38,internals:90,project:false, tuition:50000,examFee:2000,paidTuition:50000,paidExam:2000,payments:[{id:"RC2025004",date:"2025-01-08",type:"Tuition Fee",amount:50000},{id:"RC2025005",date:"2025-01-09",type:"Exam Fee",amount:2000}]},
+  { name:"Sneha Reddy",   mid1:22,mid2:25,internals:60,project:false, tuition:50000,examFee:2000,paidTuition:20000,paidExam:0,   payments:[{id:"RC2025006",date:"2025-02-01",type:"Tuition Fee",amount:20000}]},
+  { name:"Karan Mehta",   mid1:33,mid2:45,internals:82,project:true,  tuition:45000,examFee:2000,paidTuition:43000,paidExam:0,   payments:[{id:"RC2025007",date:"2025-01-20",type:"Tuition Fee",amount:43000}]},
+  { name:"Divya Nair",    mid1:45,mid2:40,internals:88,project:true,  tuition:50000,examFee:2000,paidTuition:50000,paidExam:2000,payments:[{id:"RC2025008",date:"2025-01-05",type:"Tuition Fee",amount:50000},{id:"RC2025009",date:"2025-01-06",type:"Exam Fee",amount:2000}]},
+  { name:"Arjun Singh",   mid1:30,mid2:30,internals:74,project:false, tuition:50000,examFee:2000,paidTuition:42500,paidExam:0,   payments:[{id:"RC2025010",date:"2025-02-10",type:"Tuition Fee",amount:42500}]},
+  { name:"Meera Iyer",    mid1:18,mid2:42,internals:70,project:true,  tuition:50000,examFee:2000,paidTuition:50000,paidExam:2000,payments:[{id:"RC2025011",date:"2025-01-03",type:"Tuition Fee",amount:50000},{id:"RC2025012",date:"2025-01-04",type:"Exam Fee",amount:2000}]},
+];
+
+let currentStudent = null;
+let rcptCounter = 100;
+
+function nextRcpt() { return 'RC2025' + String(++rcptCounter).padStart(3,'0'); }
+function today() { return new Date().toISOString().slice(0,10); }
+function fmt(n) { return '₹' + Number(n).toLocaleString('en-IN'); }
+
+// ════════════════════════════════
+//  ELIGIBILITY
+// ════════════════════════════════
+function totalFees(s) { return s.tuition + s.examFee; }
+function totalPaid(s) { return s.paidTuition + s.paidExam; }
+function feePct(s) {
+  const t = totalFees(s); if(!t) return 100;
+  return Math.round((totalPaid(s)/t)*100);
+}
+function feeEligible(s) { return feePct(s) >= 85; }
+function isEligible(s) { return s.mid1>=30 && s.mid2>=30 && s.project && feeEligible(s); }
+
+function pctColor(p) { return p>=85?'var(--green)':p>=50?'var(--yellow)':'var(--red)'; }
+function pctClass(p) { return p>=85?'pb-green':p>=50?'pb-yellow':'pb-red'; }
+
+// ════════════════════════════════
+//  PANEL SWITCHING
+// ════════════════════════════════
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const isHome = id==='panel-role';
+  document.getElementById('back-btn').style.display = isHome?'none':'inline-block';
+  const pill = document.getElementById('user-pill');
+  if(isHome){ pill.style.display='none'; }
+}
+
+function goHome() {
+  showPanel('panel-role');
+  currentStudent=null;
+  ['t-error','s-error'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('show')});
+  document.getElementById('t-user').value='';
+  document.getElementById('t-pass').value='';
+  document.getElementById('s-pass').value='';
+  document.getElementById('s-name').value='';
+}
+
+// ════════════════════════════════
+//  TEACHER TAB SWITCHING
+// ════════════════════════════════
+function switchTeacherTab(tab) {
+  document.querySelectorAll('#teacher-tab-bar .tab-btn').forEach((b,i)=>{
+    b.classList.toggle('active',['marks','fees'][i]===tab);
+  });
+  document.getElementById('teacher-tab-marks').classList.toggle('active',tab==='marks');
+  document.getElementById('teacher-tab-fees').classList.toggle('active',tab==='fees');
+  if(tab==='fees') renderFeeTab();
+}
+
+// ════════════════════════════════
+//  STUDENT TAB SWITCHING
+// ════════════════════════════════
+function switchStudentTab(tab) {
+  document.querySelectorAll('#student-tab-bar .tab-btn').forEach((b,i)=>{
+    b.classList.toggle('active',['overview','fees'][i]===tab);
+  });
+  document.getElementById('student-tab-overview').classList.toggle('active',tab==='overview');
+  document.getElementById('student-tab-fees').classList.toggle('active',tab==='fees');
+  if(tab==='fees') renderStudentFees();
+}
+
+// ════════════════════════════════
+//  TEACHER LOGIN & DASHBOARD
+// ════════════════════════════════
+function teacherLogin() {
+  const u=document.getElementById('t-user').value.trim();
+  const p=document.getElementById('t-pass').value;
+  if(u==='teacher'&&p==='1234') {
+    document.getElementById('t-error').classList.remove('show');
+    document.getElementById('user-pill').style.display='flex';
+    document.getElementById('user-dot').className='user-dot dot-teacher';
+    document.getElementById('user-label').textContent='Ms. Teacher';
+    renderTeacherDash();
+    showPanel('panel-teacher-dash');
+  } else {
+    document.getElementById('t-error').classList.add('show');
+  }
+}
+
+function renderTeacherDash() {
+  renderStats();
+  const tbody=document.getElementById('student-tbody');
+  tbody.innerHTML='';
+  students.forEach((s,i)=>{
+    const p=feePct(s);
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td style="color:var(--muted);font-family:'Space Mono',monospace;font-size:.78rem">${String(i+1).padStart(2,'0')}</td>
+      <td style="font-weight:600">${s.name}</td>
+      <td><span contenteditable="true" onblur="updateMark(this,${i},'mid1')" onkeydown="if(event.key==='Enter'){this.blur();event.preventDefault()}">${s.mid1}</span></td>
+      <td><span contenteditable="true" onblur="updateMark(this,${i},'mid2')" onkeydown="if(event.key==='Enter'){this.blur();event.preventDefault()}">${s.mid2}</span></td>
+      <td style="font-family:'Space Mono',monospace">${s.internals}</td>
+      <td><button class="btn btn-sm ${s.project?'btn-green':'btn-yellow'}" onclick="toggleProject(${i})">${s.project?'✓ Submitted':'✗ Pending'}</button></td>
+      <td>
+        <span style="font-family:'Space Mono',monospace;font-size:.8rem;font-weight:700;color:${pctColor(p)}">${p}%</span>
+        <div class="prog-wrap" style="min-width:55px;margin-top:3px"><div class="prog-bar ${pctClass(p)}" style="width:${Math.min(p,100)}%"></div></div>
+      </td>
+      <td id="elig-${i}"><span class="badge ${isEligible(s)?'badge-green':'badge-red'}">${isEligible(s)?'✓ Eligible':'✗ Not Eligible'}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderStats() {
+  const elig=students.filter(isEligible).length;
+  const feeOk=students.filter(feeEligible).length;
+  const proj=students.filter(s=>s.project).length;
+  const totalColl=students.reduce((a,s)=>a+totalPaid(s),0);
+  document.getElementById('t-stats').innerHTML=`
+    <div class="stat-card blue"><div class="stat-icon">👥</div><div class="stat-label">Total Students</div><div class="stat-val">${students.length}</div></div>
+    <div class="stat-card green"><div class="stat-icon">✅</div><div class="stat-label">Eligible</div><div class="stat-val">${elig}</div></div>
+    <div class="stat-card red"><div class="stat-icon">❌</div><div class="stat-label">Not Eligible</div><div class="stat-val">${students.length-elig}</div></div>
+    <div class="stat-card yellow"><div class="stat-icon">💰</div><div class="stat-label">Fee ≥85%</div><div class="stat-val">${feeOk}</div></div>
+    <div class="stat-card purple"><div class="stat-icon">📁</div><div class="stat-label">Projects In</div><div class="stat-val">${proj}</div></div>
+    <div class="stat-card orange"><div class="stat-icon">🏦</div><div class="stat-label">Collected</div><div class="stat-val" style="font-size:1.1rem">${(totalColl/1000).toFixed(0)}k</div></div>
+  `;
+}
+
+function updateMark(el,idx,field) {
+  let v=parseInt(el.textContent.trim());
+  if(isNaN(v)||v<0) v=0; if(v>50) v=50;
+  el.textContent=v; students[idx][field]=v;
+  document.getElementById('elig-'+idx).innerHTML=`<span class="badge ${isEligible(students[idx])?'badge-green':'badge-red'}">${isEligible(students[idx])?'✓ Eligible':'✗ Not Eligible'}</span>`;
+  renderStats();
+  showToast(`Updated ${field==='mid1'?'Mid 1':'Mid 2'} for ${students[idx].name}`);
+}
+
+function toggleProject(idx) {
+  students[idx].project=!students[idx].project;
+  renderTeacherDash(); renderStats();
+  showToast(`Project ${students[idx].project?'submitted':'revoked'} for ${students[idx].name}`);
+}
+
+// ════════════════════════════════
+//  TEACHER — FEE STRUCTURE TAB
+// ════════════════════════════════
+function renderFeeTab() {
+  const tbody=document.getElementById('fee-tbody');
+  tbody.innerHTML='';
+  students.forEach((s,i)=>{
+    const p=feePct(s);
+    const dueTuition=Math.max(0,s.tuition-s.paidTuition);
+    const dueExam=Math.max(0,s.examFee-s.paidExam);
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td style="color:var(--muted);font-family:'Space Mono',monospace;font-size:.78rem">${String(i+1).padStart(2,'0')}</td>
+      <td style="font-weight:600">${s.name}</td>
+      <td>₹<span contenteditable="true" style="min-width:70px" onblur="updateFee(this,${i},'tuition')" onkeydown="if(event.key==='Enter'){this.blur();event.preventDefault()}">${s.tuition.toLocaleString()}</span></td>
+      <td style="color:var(--green);font-weight:600">₹${s.paidTuition.toLocaleString()}</td>
+      <td style="color:${dueTuition>0?'var(--red)':'var(--green)'};font-weight:600">₹${dueTuition.toLocaleString()}</td>
+      <td>₹<span contenteditable="true" style="min-width:55px" onblur="updateFee(this,${i},'examFee')" onkeydown="if(event.key==='Enter'){this.blur();event.preventDefault()}">${s.examFee.toLocaleString()}</span></td>
+      <td style="color:${s.paidExam>0?'var(--green)':'var(--muted)'};font-weight:600">${s.paidExam>0?'₹'+s.paidExam.toLocaleString():'—'}</td>
+      <td style="color:${dueExam>0?'var(--red)':'var(--green)'};font-weight:600">₹${dueExam.toLocaleString()}</td>
+      <td>
+        <span style="font-weight:700;font-family:'Space Mono',monospace;font-size:.8rem;color:${pctColor(p)}">${p}%</span>
+        <div class="prog-wrap" style="min-width:55px;margin-top:3px"><div class="prog-bar ${pctClass(p)}" style="width:${Math.min(p,100)}%"></div></div>
+      </td>
+      <td><span class="badge ${p>=85?'badge-green':'badge-red'}">${p>=85?'✓ OK':'✗ Low'}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  renderFeeSummary();
+}
+
+function updateFee(el,idx,field) {
+  const raw=el.textContent.replace(/,/g,'').trim();
+  let v=parseInt(raw); if(isNaN(v)||v<0) v=0;
+  el.textContent=v.toLocaleString();
+  students[idx][field]=v;
+  renderFeeTab(); renderStats();
+  showToast(`Updated ${field==='tuition'?'Tuition':'Exam'} fee for ${students[idx].name}`);
+}
+
+function renderFeeSummary() {
+  const tot=students.reduce((a,s)=>a+totalFees(s),0);
+  const coll=students.reduce((a,s)=>a+totalPaid(s),0);
+  const due=students.reduce((a,s)=>a+Math.max(0,totalFees(s)-totalPaid(s)),0);
+  const feeOk=students.filter(feeEligible).length;
+  document.getElementById('fee-summary').innerHTML=`
+    <div class="stat-card blue"><div class="stat-label">Total Fee Pool</div><div class="stat-val" style="font-size:1.1rem">${fmt(tot)}</div></div>
+    <div class="stat-card green"><div class="stat-label">Total Collected</div><div class="stat-val" style="font-size:1.1rem">${fmt(coll)}</div></div>
+    <div class="stat-card red"><div class="stat-label">Outstanding Due</div><div class="stat-val" style="font-size:1.1rem">${fmt(due)}</div></div>
+    <div class="stat-card yellow"><div class="stat-label">Fee Eligible (≥85%)</div><div class="stat-val">${feeOk}/${students.length}</div></div>
+  `;
+}
+
+// ════════════════════════════════
+//  STUDENT LOGIN & DASHBOARD
+// ════════════════════════════════
+function populateSelect() {
+  const sel=document.getElementById('s-name');
+  sel.innerHTML='<option value="">— Select your name —</option>';
+  students.forEach((s,i)=>{const o=document.createElement('option');o.value=i;o.textContent=s.name;sel.appendChild(o)});
+}
+
+function studentLogin() {
+  const idx=document.getElementById('s-name').value;
+  const p=document.getElementById('s-pass').value;
+  if(idx===''||p!=='1234'){document.getElementById('s-error').classList.add('show');return;}
+  document.getElementById('s-error').classList.remove('show');
+  currentStudent=parseInt(idx);
+  const s=students[currentStudent];
+  document.getElementById('user-pill').style.display='flex';
+  document.getElementById('user-dot').className='user-dot dot-student';
+  document.getElementById('user-label').textContent=s.name;
+  renderStudentDash();
+  showPanel('panel-student-dash');
+}
+
+function renderStudentDash() {
+  const s=students[currentStudent];
+  document.getElementById('s-dash-name').textContent='Logged in as: '+s.name;
+
+  // Eligibility banner
+  const elig=isEligible(s);
+  const reasons=[];
+  const checks=[];
+  checks.push({ok:s.mid1>=30,label:`Mid 1: ${s.mid1}/50 ${s.mid1>=30?'✓':'(need ≥30)'}`});
+  checks.push({ok:s.mid2>=30,label:`Mid 2: ${s.mid2}/50 ${s.mid2>=30?'✓':'(need ≥30)'}`});
+  checks.push({ok:s.project,label:`Project ${s.project?'✓ Submitted':'✗ Pending'}`});
+  checks.push({ok:feeEligible(s),label:`Fee ${feePct(s)}% ${feeEligible(s)?'✓':'(need ≥85%)'}`});
+
+  const chips=checks.map(c=>`<span class="reason-chip ${c.ok?'ok':''}">${c.label}</span>`).join('');
+
+  document.getElementById('s-elig-banner').innerHTML=`
+    <div class="elig-banner ${elig?'eligible':'not-eligible'}">
+      <div class="elig-icon">${elig?'🎉':'⚠️'}</div>
+      <div style="flex:1">
+        <h2>${elig?'You are Eligible for the Exam!':'Not Yet Eligible'}</h2>
+        <p>${elig?'All criteria met. You can download your hall ticket below.':'Complete the pending requirements to become eligible.'}</p>
+        <div class="elig-reasons">${chips}</div>
+        ${elig?`<button class="hall-ticket-btn" onclick="openHallTicket()">🎫 View &amp; Download Hall Ticket</button>`:''}
+      </div>
+    </div>`;
+
+  // Info cards
+  const p=feePct(s);
+  document.getElementById('s-info-grid').innerHTML=`
+    <div class="info-card ic-blue"><div class="info-label">Mid 1</div><div class="info-val" style="color:${s.mid1>=30?'var(--green)':'var(--red)'}">${s.mid1}<span style="font-size:1rem;color:var(--muted)">/50</span></div></div>
+    <div class="info-card ic-purple"><div class="info-label">Mid 2</div><div class="info-val" style="color:${s.mid2>=30?'var(--green)':'var(--red)'}">${s.mid2}<span style="font-size:1rem;color:var(--muted)">/50</span></div></div>
+    <div class="info-card ic-yellow"><div class="info-label">Internals</div><div class="info-val" style="color:var(--accent)">${s.internals}<span style="font-size:1rem;color:var(--muted)">/100</span></div></div>
+    <div class="info-card ic-orange"><div class="info-label">Fee Paid</div><div class="info-val" style="color:${pctColor(p)}">${p}<span style="font-size:1rem;color:var(--muted)">%</span></div></div>
+  `;
+
+  // Project
+  const projText=document.getElementById('s-proj-text');
+  const uploadRow=document.getElementById('s-upload-row');
+  const okMsg=document.getElementById('s-submit-ok');
+  if(s.project){
+    projText.innerHTML='<span style="color:var(--green)">✓ Your project has been submitted.</span>';
+    uploadRow.style.display='none'; okMsg.classList.remove('show');
+  } else {
+    projText.textContent='Your project is not yet submitted. Upload your file below.';
+    uploadRow.style.display='flex'; okMsg.classList.remove('show');
+  }
+}
+
+// ════════════════════════════════
+//  STUDENT FEES TAB
+// ════════════════════════════════
+function renderStudentFees() {
+  const s=students[currentStudent];
+  const p=feePct(s);
+  const dueTuition=Math.max(0,s.tuition-s.paidTuition);
+  const dueExam=Math.max(0,s.examFee-s.paidExam);
+
+  // Fee cards
+  document.getElementById('s-fee-cards').innerHTML=`
+    <div class="info-card ic-blue"><div class="info-label">Tuition Fee</div><div class="info-val" style="font-size:1.3rem;color:var(--accent)">${fmt(s.tuition)}</div></div>
+    <div class="info-card ic-green"><div class="info-label">Tuition Paid</div><div class="info-val" style="font-size:1.3rem;color:var(--green)">${fmt(s.paidTuition)}</div></div>
+    <div class="info-card ic-red"><div class="info-label">Tuition Due</div><div class="info-val" style="font-size:1.3rem;color:${dueTuition>0?'var(--red)':'var(--green)'}">${fmt(dueTuition)}</div></div>
+    <div class="info-card ic-orange"><div class="info-label">Overall Fee %</div><div class="info-val" style="color:${pctColor(p)}">${p}<span style="font-size:1rem;color:var(--muted)">%</span></div></div>
+  `;
+
+  // Progress bar card
+  document.getElementById('s-fee-progress-card').innerHTML=`
+    <h3>📊 Fee Payment Progress</h3>
+    <p style="font-size:.84rem;color:var(--muted);margin-bottom:.85rem">You need to pay ≥85% of total fees to become fee eligible for the exam.</p>
+    <div style="display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:.4rem">
+      <span style="color:var(--muted2)">Total: ${fmt(totalFees(s))}</span>
+      <span style="color:${pctColor(p)};font-weight:700">${p}% paid ${p>=85?'✓ Eligible':'— Need ≥85%'}</span>
+    </div>
+    <div class="prog-wrap" style="height:12px">
+      <div class="prog-bar ${pctClass(p)}" style="width:${Math.min(p,100)}%"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:.76rem;margin-top:.45rem;color:var(--muted)">
+      <span>Paid: ${fmt(totalPaid(s))}</span>
+      <span>Due: ${fmt(Math.max(0,totalFees(s)-totalPaid(s)))}</span>
+    </div>
+  `;
+
+  // Tuition input desc
+  document.getElementById('s-tuition-desc').textContent=
+    dueTuition>0
+      ? `Tuition due: ${fmt(dueTuition)} of ${fmt(s.tuition)}`
+      : '✓ Tuition fee fully paid!';
+  document.getElementById('s-tuition-input').disabled=dueTuition<=0;
+  document.getElementById('s-tuition-input').placeholder=dueTuition>0?`Max: ${fmt(dueTuition)}`:'Fully paid';
+
+  // Exam fee card
+  const examCard=document.getElementById('s-exam-fee-card');
+  if(s.paidExam>=s.examFee){
+    examCard.innerHTML=`<h3>🎓 Exam Fee</h3><p class="fee-desc" style="color:var(--green)">✓ Exam fee of ${fmt(s.examFee)} fully paid.</p>`;
+  } else {
+    examCard.innerHTML=`
+      <h3>🎓 Pay Exam Fee</h3>
+      <p class="fee-desc">Exam Fee: ${fmt(s.examFee)} &nbsp;|&nbsp; Paid: ${fmt(s.paidExam)} &nbsp;|&nbsp; Due: <strong style="color:var(--red)">${fmt(s.examFee-s.paidExam)}</strong></p>
+      <button class="btn btn-green btn-sm" style="padding:.65rem 1.2rem" onclick="payExamFee()">💳 Pay Exam Fee (${fmt(s.examFee-s.paidExam)})</button>
+      <div class="success-msg" id="s-exam-ok">✅ Exam fee paid!</div>
+    `;
+  }
+
+  renderPayHistory();
+}
+
+function renderPayHistory() {
+  const s=students[currentStudent];
+  const container=document.getElementById('s-pay-hist');
+  if(!s.payments.length){container.innerHTML='<p style="color:var(--muted);font-size:.875rem;padding:.5rem">No payments yet.</p>';return;}
+  container.innerHTML=[...s.payments].reverse().map(p=>`
+    <div class="pay-history-row">
+      <div class="phr-left">
+        <div class="phr-icon">💳</div>
+        <div>
+          <div class="phr-name">${p.type}</div>
+          <div class="phr-date">${p.date} &nbsp;·&nbsp; ${p.id}</div>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div class="phr-amt">${fmt(p.amount)}</div>
+        <button onclick="showReceipt('${p.id}')" style="background:none;border:none;color:var(--accent);font-size:.72rem;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:.15rem">🧾 Receipt</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ════════════════════════════════
+//  PAYMENTS
+// ════════════════════════════════
+function payTuition() {
+  const s=students[currentStudent];
+  const due=s.tuition-s.paidTuition;
+  const raw=parseFloat(document.getElementById('s-tuition-input').value);
+  if(isNaN(raw)||raw<=0){showToast('⚠️ Enter a valid amount');return;}
+  if(raw>due){showToast(`⚠️ Amount exceeds due (${fmt(due)})`);return;}
+  const id=nextRcpt();
+  s.paidTuition=Math.min(s.paidTuition+raw, s.tuition);
+  s.payments.push({id,date:today(),type:'Tuition Fee',amount:raw});
+  document.getElementById('s-tuition-input').value='';
+  document.getElementById('s-tuition-ok').classList.add('show');
+  setTimeout(()=>document.getElementById('s-tuition-ok').classList.remove('show'),3000);
+  renderStudentFees();
+  renderStudentDash();
+  renderStats();
+  showToast('✅ Payment recorded!');
+  setTimeout(()=>showReceipt(id),400);
+}
+
+function payExamFee() {
+  const s=students[currentStudent];
+  const due=s.examFee-s.paidExam;
+  if(due<=0){showToast('Exam fee already paid');return;}
+  const id=nextRcpt();
+  s.paidExam=s.examFee;
+  s.payments.push({id,date:today(),type:'Exam Fee',amount:due});
+  renderStudentFees();
+  renderStudentDash();
+  renderStats();
+  showToast('✅ Exam fee paid!');
+  setTimeout(()=>showReceipt(id),400);
+}
+
+// ════════════════════════════════
+//  RECEIPT
+// ════════════════════════════════
+function showReceipt(rcptId) {
+  const s=students[currentStudent];
+  const pay=s.payments.find(p=>p.id===rcptId);
+  if(!pay) return;
+
+  const html=`
+    <div class="rcpt-header">
+      <div>
+        <div class="rcpt-logo">Exam<span>Check</span>.io</div>
+        <div class="rcpt-type">Fee Payment Receipt</div>
+      </div>
+      <div>
+        <div class="rcpt-no">${pay.id}</div>
+        <div class="rcpt-date">${pay.date}</div>
+      </div>
+    </div>
+    <div class="rcpt-body">
+      <div class="rcpt-student">
+        <div class="rcpt-student-name">${s.name}</div>
+        <div class="rcpt-student-id">Roll: R2025${String(currentStudent+1).padStart(3,'0')} &nbsp;·&nbsp; B.Tech CSE — IV Semester</div>
+      </div>
+      <div class="rcpt-row"><span class="rcpt-lbl">Payment Type</span><span class="rcpt-val">${pay.type}</span></div>
+      <div class="rcpt-row"><span class="rcpt-lbl">Amount Paid</span><span class="rcpt-val big">₹${Number(pay.amount).toLocaleString('en-IN')}</span></div>
+      <div class="rcpt-row"><span class="rcpt-lbl">Payment Date</span><span class="rcpt-val">${pay.date}</span></div>
+      <div class="rcpt-row"><span class="rcpt-lbl">Receipt No.</span><span class="rcpt-val">${pay.id}</span></div>
+      <div class="rcpt-row"><span class="rcpt-lbl">Tuition — Total / Paid</span><span class="rcpt-val">₹${s.tuition.toLocaleString()} / ₹${s.paidTuition.toLocaleString()}</span></div>
+      <div class="rcpt-row"><span class="rcpt-lbl">Exam Fee — Total / Paid</span><span class="rcpt-val">₹${s.examFee.toLocaleString()} / ₹${s.paidExam.toLocaleString()}</span></div>
+      <div class="rcpt-row total"><span class="rcpt-lbl" style="font-weight:700;color:#0f172a">Overall Fee Paid</span><span class="rcpt-val big">${feePct(s)}%</span></div>
+    </div>
+    <div style="padding:0 2rem 1rem">
+      <div class="rcpt-stamp">${feePct(s)>=85?'✅ Fee Eligible for Exam (≥85% paid)':'ℹ️ Fee eligibility requires ≥85% payment'}</div>
+    </div>
+    <div class="rcpt-actions">
+      <button class="rcpt-btn rcpt-btn-primary" onclick="downloadReceipt('${rcptId}')">⬇ Download Receipt</button>
+      <button class="rcpt-btn rcpt-btn-outline" onclick="closeReceipt()">Close</button>
+    </div>
+    <div class="rcpt-foot">ExamCheck.io — Automated Fee Receipt &nbsp;·&nbsp; Keep this for your records</div>
+  `;
+  document.getElementById('rcpt-box').innerHTML=html;
+  document.getElementById('receipt-modal').classList.add('open');
+}
+
+function closeReceipt() { document.getElementById('receipt-modal').classList.remove('open'); }
+
+document.addEventListener('click',function(e){
+  if(e.target.id==='receipt-modal') closeReceipt();
+});
+
+function downloadReceipt(rcptId) {
+  const s=students[currentStudent];
+  const pay=s.payments.find(p=>p.id===rcptId);
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Receipt ${rcptId}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',sans-serif;background:#f1f5f9;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:2rem}
+    .box{background:#fff;border-radius:12px;width:100%;max-width:520px;overflow:hidden;border:1px solid #e2e8f0;box-shadow:0 8px 32px rgba(0,0,0,.1)}
+    .hd{background:linear-gradient(135deg,#1d4ed8,#4338ca);color:#fff;padding:1.35rem 2rem;display:flex;justify-content:space-between}
+    .logo{font-family:'Space Mono',monospace;font-size:1rem;font-weight:700}.logo span{color:#a5b4fc}
+    .no{font-size:.7rem;opacity:.75;text-align:right}.dt{font-size:.68rem;opacity:.6;text-align:right;margin-top:.15rem}
+    .body{padding:1.5rem 2rem}
+    .stu{background:#f8fafc;border-radius:8px;padding:.85rem 1rem;margin-bottom:1.25rem;border:1px solid #e2e8f0}
+    .sn{font-weight:700;font-size:1rem;color:#0f172a}.si{font-size:.74rem;color:#64748b;margin-top:.1rem;font-family:'Space Mono',monospace}
+    .row{display:flex;justify-content:space-between;align-items:center;padding:.55rem 0;border-bottom:1px dashed #e2e8f0}
+    .row:last-child{border-bottom:none}
+    .row.tot{border-top:2px solid #1d4ed8;border-bottom:none;padding-top:.7rem}
+    .lbl{color:#64748b;font-size:.82rem}.val{font-weight:700;font-size:.88rem;color:#0f172a}
+    .val.big{font-size:1.1rem;color:#1d4ed8;font-family:'Space Mono',monospace}
+    .stamp{margin:1rem 0 0;padding:.8rem;background:#f0fdf4;border:2px dashed #22c55e;border-radius:8px;text-align:center;font-weight:700;color:#15803d;font-size:.85rem}
+    .ft{padding:.8rem 2rem;background:#f8fafc;border-top:1px solid #e2e8f0;text-align:center;font-size:.68rem;color:#94a3b8}
+    @media print{body{background:#fff;padding:0}}
+  </style></head><body><div class="box">
+    <div class="hd">
+      <div><div class="logo">Exam<span>Check</span>.io</div><div style="font-size:.7rem;opacity:.7;margin-top:.2rem">Fee Payment Receipt</div></div>
+      <div><div class="no">${pay.id}</div><div class="dt">${pay.date}</div></div>
+    </div>
+    <div class="body">
+      <div class="stu"><div class="sn">${s.name}</div><div class="si">Roll: R2025${String(currentStudent+1).padStart(3,'0')} · B.Tech CSE — IV Semester</div></div>
+      <div class="row"><span class="lbl">Payment Type</span><span class="val">${pay.type}</span></div>
+      <div class="row"><span class="lbl">Amount Paid</span><span class="val big">₹${Number(pay.amount).toLocaleString('en-IN')}</span></div>
+      <div class="row"><span class="lbl">Payment Date</span><span class="val">${pay.date}</span></div>
+      <div class="row"><span class="lbl">Receipt No.</span><span class="val">${pay.id}</span></div>
+      <div class="row"><span class="lbl">Tuition — Total / Paid</span><span class="val">₹${s.tuition.toLocaleString()} / ₹${s.paidTuition.toLocaleString()}</span></div>
+      <div class="row"><span class="lbl">Exam Fee — Total / Paid</span><span class="val">₹${s.examFee.toLocaleString()} / ₹${s.paidExam.toLocaleString()}</span></div>
+      <div class="row tot"><span class="lbl" style="font-weight:700;color:#0f172a">Overall Fee Paid</span><span class="val big">${feePct(s)}%</span></div>
+      <div class="stamp">${feePct(s)>=85?'✅ Fee Eligible for Exam (≥85% paid)':'ℹ️ Fee eligibility requires ≥85%'}</div>
+    </div>
+    <div class="ft">ExamCheck.io — Automated Fee Receipt · Keep this for your records</div>
+  </div></body></html>`;
+  const w=window.open('','_blank');
+  w.document.write(html); w.document.close();
+  setTimeout(()=>w.print(),500);
+  showToast('🧾 Receipt opened for download!');
+}
+
+// ════════════════════════════════
+//  PROJECT SUBMIT
+// ════════════════════════════════
+function submitProject() {
+  if(!document.getElementById('s-file-input').files.length){showToast('⚠️ Select a file first');return;}
+  students[currentStudent].project=true;
+  renderStudentDash();
+  document.getElementById('s-submit-ok').classList.add('show');
+  showToast('🎉 Project submitted!');
+}
+
+// ════════════════════════════════
+//  HALL TICKET
+// ════════════════════════════════
+function generateHallTicketHTML(s) {
+  const now=new Date();
+  const issue=now.toLocaleDateString('en-IN',{year:'numeric',month:'long',day:'numeric'});
+  const exam=new Date(now.getFullYear(),now.getMonth()+2,1).toLocaleDateString('en-IN',{year:'numeric',month:'long',day:'numeric'});
+  const ticketNo='HT'+now.getFullYear()+String(currentStudent+1).padStart(4,'0');
+  const rollNo='R'+now.getFullYear()+String(currentStudent+1).padStart(3,'0');
+  return `<div id="hall-ticket-preview">
+    <div class="ht-top-bar">
+      <div><div class="ht-college">ExamCheck University<small>Dept. of Computer Science & Engineering</small></div></div>
+      <div class="ht-logo-circle">🎓</div>
+    </div>
+    <div class="ht-title-bar">Semester Examination Hall Ticket</div>
+    <div class="ht-body">
+      <div class="ht-row">
+        <div class="ht-field"><label>Student Name</label><div class="ht-val">${s.name}</div></div>
+        <div class="ht-field"><label>Roll Number</label><div class="ht-val">${rollNo}</div></div>
+      </div>
+      <div class="ht-row">
+        <div class="ht-field"><label>Hall Ticket No.</label><div class="ht-val">${ticketNo}</div></div>
+        <div class="ht-field"><label>Exam Date (From)</label><div class="ht-val">${exam}</div></div>
+      </div>
+      <div class="ht-row">
+        <div class="ht-field"><label>Programme</label><div class="ht-val">B.Tech — CSE</div></div>
+        <div class="ht-field"><label>Semester</label><div class="ht-val">IV Semester</div></div>
+      </div>
+      <div class="ht-row">
+        <div class="ht-field"><label>Fee Status</label><div class="ht-val" style="color:#15803d">✓ ${feePct(s)}% Paid — Eligible</div></div>
+        <div class="ht-field"><label>Date of Issue</label><div class="ht-val">${issue}</div></div>
+      </div>
+      <table class="ht-marks-table">
+        <thead><tr><th>Assessment</th><th>Obtained</th><th>Maximum</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Mid Term 1</td><td>${s.mid1}</td><td>50</td><td style="color:#15803d">✓ Cleared</td></tr>
+          <tr><td>Mid Term 2</td><td>${s.mid2}</td><td>50</td><td style="color:#15803d">✓ Cleared</td></tr>
+          <tr><td>Internals</td><td>${s.internals}</td><td>100</td><td style="color:#15803d">✓ Recorded</td></tr>
+          <tr><td>Project</td><td colspan="2">Submitted</td><td style="color:#15803d">✓ Accepted</td></tr>
+          <tr><td>Fee Payment</td><td colspan="2">${feePct(s)}% of Total</td><td style="color:#15803d">✓ Eligible</td></tr>
+        </tbody>
+      </table>
+      <div class="ht-eligible-stamp">
+        <div class="ht-stamp-text">✅ Eligible to Write Semester Exam</div>
+        <div class="ht-stamp-sub">All criteria fulfilled — This is your official exam admit card</div>
+      </div>
+      <p style="font-size:.74rem;color:#64748b;margin-top:.5rem;line-height:1.5"><strong>Instructions:</strong> Carry this hall ticket to the examination hall. Bring a valid college ID. No student permitted without this document.</p>
+    </div>
+    <div class="ht-footer">
+      <div>ExamCheck.io — Issued: ${issue}</div>
+      <div class="ht-sign"><div class="sign-line"></div><div>Controller of Examinations</div></div>
+    </div>
+  </div>`;
+}
+
+function openHallTicket() {
+  document.getElementById('hall-ticket-preview').innerHTML=generateHallTicketHTML(students[currentStudent]);
+  document.getElementById('hall-ticket-modal').classList.add('open');
+}
+function closeHallTicket() { document.getElementById('hall-ticket-modal').classList.remove('open'); }
+document.getElementById('hall-ticket-modal').addEventListener('click',function(e){if(e.target===this)closeHallTicket()});
+
+function downloadHallTicket() {
+  const s=students[currentStudent];
+  const inner=generateHallTicketHTML(s);
+  const win=window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Hall Ticket - ${s.name}</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'DM Sans',sans-serif;background:#f1f5f9;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:2rem}
+  #hall-ticket-preview{background:#fff;color:#0f172a;border-radius:10px;overflow:hidden;border:2px solid #1d4ed8;max-width:680px;width:100%}
+  .ht-top-bar{background:linear-gradient(135deg,#1d4ed8,#7c3aed);color:#fff;padding:1.25rem 1.75rem;display:flex;align-items:center;justify-content:space-between}
+  .ht-college{font-size:1.05rem;font-weight:700}.ht-college small{display:block;font-size:.75rem;font-weight:400;opacity:.8;margin-top:2px}
+  .ht-logo-circle{width:52px;height:52px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4rem;border:2px solid rgba(255,255,255,.4);flex-shrink:0}
+  .ht-title-bar{background:#1e40af;color:#fff;text-align:center;padding:.6rem;font-size:.82rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+  .ht-body{padding:1.5rem 1.75rem}
+  .ht-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+  .ht-field label{display:block;font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:#64748b;margin-bottom:.25rem;font-weight:600}
+  .ht-field .ht-val{font-size:.93rem;font-weight:700;color:#0f172a;border-bottom:1.5px solid #e2e8f0;padding-bottom:.3rem}
+  .ht-marks-table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.84rem}
+  .ht-marks-table th{background:#f1f5f9;color:#475569;padding:.52rem .75rem;text-align:left;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;border:1px solid #e2e8f0}
+  .ht-marks-table td{padding:.52rem .75rem;border:1px solid #e2e8f0;font-weight:600}
+  .ht-eligible-stamp{text-align:center;margin:1.2rem 0 .7rem;padding:1rem;background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:2px dashed #22c55e;border-radius:10px}
+  .ht-stamp-text{font-size:1.2rem;font-weight:900;color:#15803d;letter-spacing:.1em;text-transform:uppercase}
+  .ht-stamp-sub{font-size:.78rem;color:#16a34a;margin-top:.25rem}
+  .ht-footer{background:#f8fafc;border-top:1px solid #e2e8f0;padding:.8rem 1.75rem;display:flex;justify-content:space-between;align-items:center;font-size:.73rem;color:#94a3b8}
+  .ht-sign{text-align:right}.sign-line{border-top:1.5px solid #94a3b8;width:120px;margin:.45rem 0 .18rem auto}
+  @media print{body{background:#fff;padding:0}}</style></head><body>${inner}</body></html>`);
+  win.document.close();
+  setTimeout(()=>win.print(),600);
+  showToast('🎫 Hall ticket opened — Save as PDF!');
+}
+
+// ════════════════════════════════
+//  EXPORT
+// ════════════════════════════════
+let exportFilter='all';
+
+function openExportModal() { document.getElementById('export-modal').classList.add('open'); updateExportCount(); }
+function closeExportModal() { document.getElementById('export-modal').classList.remove('open'); }
+document.getElementById('export-modal').addEventListener('click',function(e){if(e.target===this)closeExportModal()});
+
+function setFilter(f) {
+  exportFilter=f;
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  document.getElementById('chip-'+f.replace(' ','')).classList.add('active');
+  updateExportCount();
+}
+function getFiltered() {
+  if(exportFilter==='eligible') return students.filter(isEligible);
+  if(exportFilter==='noteligible') return students.filter(s=>!isEligible(s));
+  return students;
+}
+function updateExportCount() { document.getElementById('exp-count').textContent=getFiltered().length; }
+
+function exportCSV() {
+  const data=getFiltered(); if(!data.length){showToast('No students match');return;}
+  const hdrs=['#','Name','Mid1','Mid2','Internals','Project','Tuition','Paid Tuition','Exam Fee','Paid Exam','Fee%','Eligible'];
+  const rows=data.map((s,i)=>[i+1,s.name,s.mid1,s.mid2,s.internals,s.project?'Yes':'No',s.tuition,s.paidTuition,s.examFee,s.paidExam,feePct(s)+'%',isEligible(s)?'Eligible':'Not Eligible']);
+  const csv=[hdrs,...rows].map(r=>r.map(v=>`"${v}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='exam_eligibility_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click(); closeExportModal(); showToast('📊 CSV downloaded!');
+}
+
+function exportPDF() {
+  const data=getFiltered(); if(!data.length){showToast('No students match');return;}
+  const elig=data.filter(isEligible).length;
+  const date=new Date().toLocaleDateString('en-IN',{year:'numeric',month:'long',day:'numeric'});
+  const rows=data.map((s,i)=>`<tr style="background:${i%2===0?'#f9fafb':'#fff'}">
+    <td>${String(i+1).padStart(2,'0')}</td><td style="font-weight:600">${s.name}</td>
+    <td>${s.mid1}/50</td><td>${s.mid2}/50</td><td>${s.internals}</td>
+    <td style="color:${s.project?'#16a34a':'#d97706'}">${s.project?'✓':'✗'}</td>
+    <td>${feePct(s)}%</td>
+    <td><span style="display:inline-block;padding:2px 10px;border-radius:20px;font-size:.75rem;font-weight:700;background:${isEligible(s)?'#dcfce7':'#fee2e2'};color:${isEligible(s)?'#16a34a':'#dc2626'}">${isEligible(s)?'Eligible':'Not Eligible'}</span></td>
+  </tr>`).join('');
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Report</title>
+  <style>body{font-family:'Segoe UI',sans-serif;margin:0;padding:32px;color:#1e293b}
+  .hd{display:flex;justify-content:space-between;border-bottom:3px solid #1d4ed8;padding-bottom:16px;margin-bottom:24px}
+  .logo{font-size:1.4rem;font-weight:800;color:#1d4ed8}.logo span{color:#7c3aed}
+  .meta{text-align:right;font-size:.82rem;color:#64748b}
+  .summ{display:flex;gap:14px;margin-bottom:24px}
+  .sb{flex:1;border-radius:8px;padding:14px 18px}
+  .sb .v{font-size:1.5rem;font-weight:800;margin-bottom:2px}.sb .l{font-size:.76rem;color:#64748b}
+  .bl{background:#eff6ff}.bl .v{color:#1d4ed8}.gr{background:#f0fdf4}.gr .v{color:#16a34a}.rd{background:#fef2f2}.rd .v{color:#dc2626}
+  table{width:100%;border-collapse:collapse;font-size:.85rem}
+  thead{background:#1d4ed8;color:#fff}th{padding:10px 12px;text-align:left;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em}
+  td{padding:9px 12px;border-bottom:1px solid #e2e8f0}
+  .ft{margin-top:28px;text-align:center;font-size:.75rem;color:#94a3b8}
+  @media print{body{padding:16px}}</style></head><body>
+  <div class="hd"><div><div class="logo">Exam<span>Check</span>.io</div><div style="font-size:.84rem;color:#64748b;margin-top:4px">Eligibility & Fee Report</div></div><div class="meta"><div>${date}</div><div style="margin-top:4px">Filter: ${exportFilter}</div></div></div>
+  <div class="summ"><div class="sb bl"><div class="v">${data.length}</div><div class="l">Total</div></div><div class="sb gr"><div class="v">${elig}</div><div class="l">Eligible</div></div><div class="sb rd"><div class="v">${data.length-elig}</div><div class="l">Not Eligible</div></div></div>
+  <table><thead><tr><th>#</th><th>Name</th><th>Mid 1</th><th>Mid 2</th><th>Internals</th><th>Project</th><th>Fee %</th><th>Eligibility</th></tr></thead><tbody>${rows}</tbody></table>
+  <div class="ft">Criteria: Mid1≥30 · Mid2≥30 · Project Submitted · Fees≥85% — ExamCheck.io</div>
+  </body></html>`;
+  const w=window.open('','_blank'); w.document.write(html); w.document.close();
+  setTimeout(()=>w.print(),500); closeExportModal(); showToast('📄 PDF report opened!');
+}
+
+// ════════════════════════════════
+//  TOAST
+// ════════════════════════════════
+let toastTimer;
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// ════════════════════════════════
+//  INIT
+// ════════════════════════════════
+populateSelect();
+document.getElementById('t-pass').addEventListener('keydown',e=>{if(e.key==='Enter')teacherLogin()});
+document.getElementById('s-pass').addEventListener('keydown',e=>{if(e.key==='Enter')studentLogin()});
+</script>
+</body>
+</html>
